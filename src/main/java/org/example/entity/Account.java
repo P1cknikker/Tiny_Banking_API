@@ -17,15 +17,13 @@ public class Account {
         this.customerId = customerId;
     }
 
-    public int deposit(BigDecimal amount){
-        balance += amount;
-        return balance;
+    public BigDecimal deposit(BigDecimal amount){
+        return balance.add(amount);
     }
-    public int withdraw(BigDecimal amount){
-        if (balance - amount < 0) {
+    public BigDecimal withdraw(BigDecimal amount){
+        if ((balance.subtract(amount)).compareTo(BigDecimal.ZERO) < 0) {
             throw new IndexOutOfBoundsException("nei mou chin aar!");
         }
-        balance -= amount;
-        return balance;
+        return balance.subtract(amount);
     }
 }
