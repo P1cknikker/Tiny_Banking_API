@@ -1,25 +1,27 @@
 package org.example.entity;
 
+import java.math.BigDecimal;
+
 public class Account {
     //Declaration
-    int id;
-    char iban;
-    int balance;
-    int customerId;
+    Long id;
+    String iban;
+    BigDecimal balance;
+    Long customerId;
 
     //Constructor + Variable initialization
-    public Account(int id, char iban, int balance, int customerId ){
+    public Account(Long id, String iban, BigDecimal balance, Long customerId ){
         this.id = id;
         this.iban = iban;
         this.balance = balance;
         this.customerId = customerId;
     }
 
-    public int deposit(int amount){
+    public int deposit(BigDecimal amount){
         balance += amount;
         return balance;
     }
-    public int withdraw(int amount){
+    public int withdraw(BigDecimal amount){
         if (balance - amount < 0) {
             throw new IndexOutOfBoundsException("nei mou chin aar!");
         }
