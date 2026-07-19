@@ -1,15 +1,23 @@
 package org.example.entity;
 
-import com.sun.org.apache.xpath.internal.objects.XString;
+import jakarta.persistence.*;
 
+@Entity
+@Table(name = "customers")
 public class Customer {
     //Declaration
-    int id;
-    String name;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+
+    @Column(nullable = false)
+    private String name;
+
+    private @Column(nullable = false)
     String email;
 
     //Constructor + Variable initialization
-    public Customer(int id, String name, String email){
+    public Customer(Long id, String name, String email){
         this.id = id;
         this.name = name;
         this.email = email;
