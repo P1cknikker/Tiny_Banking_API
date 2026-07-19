@@ -16,11 +16,5 @@ public class Customer {
     private @Column(nullable = false)
     String email;
 
-    //Constructor + Variable initialization
-    public Customer(Long id, String name, String email){
-        this.id = id;
-        this.name = name;
-        this.email = email;
-
-    }
+    //getter and setter
 }

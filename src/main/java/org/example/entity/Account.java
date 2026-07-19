@@ -1,29 +1,28 @@
 package org.example.entity;
 
-import java.math.BigDecimal;
+import jakarta.persistence.*;
 
+import java.math.BigDecimal;
+import java.util.Optional;
+
+@Entity
+@Table(name = "accounts",
+        uniqueConstraints = @UniqueConstraint(columnNames = "iban"))
 public class Account {
     //Declaration
-    Long id;
-    String iban;
-    BigDecimal balance;
-    Long customerId;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
 
-    //Constructor + Variable initialization
-    public Account(Long id, String iban, BigDecimal balance, Long customerId ){
-        this.id = id;
-        this.iban = iban;
-        this.balance = balance;
-        this.customerId = customerId;
-    }
+    @Column(nullable = false, length = 34) //IBAN max
+    private String iban;
 
-    public BigDecimal deposit(BigDecimal amount){
-        return balance.add(amount);
-    }
-    public BigDecimal withdraw(BigDecimal amount){
-        if ((balance.subtract(amount)).compareTo(BigDecimal.ZERO) < 0) {
-            throw new IndexOutOfBoundsException("nei mou chin aar!");
-        }
-        return balance.subtract(amount);
-    }
+    @Column(nullable = false, precision = 19, scale = 2)
+    private BigDecimal balance = BigDecimal.ZERO;
+
+    @ManyToOne(optional = false, fetch = FetchType.LAZY)
+    @JoinColumn(name = "customer_id", nullable = false)
+    private Customer customer;
+
+    //getter and setter
 }
