@@ -13,8 +13,8 @@ public class Customer {
     @Column(nullable = false)
     private String name;
 
-    private @Column(nullable = false)
-    String email;
+    @Column(nullable = false)
+    private String email;
 
     //getter and setter
 }

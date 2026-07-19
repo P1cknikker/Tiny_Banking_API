@@ -3,7 +3,6 @@ package org.example.entity;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
-import java.util.Optional;
 
 @Entity
 @Table(name = "accounts",
