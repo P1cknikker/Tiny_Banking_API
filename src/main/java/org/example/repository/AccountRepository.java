@@ -10,5 +10,4 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByIban(String iban);
     List<Transaction> findByAccountIdOrderByTimestampDesc(Long accountId);
-
 }

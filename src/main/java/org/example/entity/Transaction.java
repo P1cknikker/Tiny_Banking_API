@@ -27,4 +27,39 @@ public class Transaction {
     private Instant timestamp;
 
     // getters/setters
+
+    public Long getId() {
+        return id;
+    }
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Account getAccount() {
+        return account;
+    }
+    public void setAccount(Account account) {
+        this.account = account;
+    }
+
+    public BigDecimal getAmount() {
+        return amount;
+    }
+    public void setAmount(BigDecimal amount) {
+        this.amount = amount;
+    }
+
+    public Instant getTimestamp() {
+        return timestamp;
+    }
+    public void setTimestamp(Instant timestamp) {
+        this.timestamp = timestamp;
+    }
+
+    public TransactionType getType() {
+        return type;
+    }
+    public void setType(TransactionType type) {
+        this.type = type;
+    }
 }
