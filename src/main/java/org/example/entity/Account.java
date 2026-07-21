@@ -25,9 +25,7 @@ public class Account {
 
     //getter and setter
 
-    public BigDecimal getBalance() {
-        return balance;
-    }
+    public BigDecimal getBalance() { return balance; }
     public void setBalance(BigDecimal balance) {
         this.balance = balance;
     }
