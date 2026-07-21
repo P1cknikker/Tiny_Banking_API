@@ -75,7 +75,6 @@ public class TransactionService {
 
     public List<TransactionResponseDTO> getTransactionsForAccount(Long accountId) {
         // optional: Account existieren prüfen; oder direkt TransactionRepository abfragen
-        // Mapping später
         List<Transaction> txs = transactionRepository
                 .findByAccountIdOrderByTimestampDesc(accountId);
 

@@ -1,11 +1,14 @@
 package org.example.service;
 
-import org.example.dto.BankingMapper;
-import org.example.dto.CustomerResponseDTO;
+import org.example.dto.*;
+import org.example.entity.Account;
 import org.example.entity.Customer;
 import org.example.exception.CustomerNotFoundException;
+import org.example.exception.DuplicateIbanException;
 import org.example.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
+
+import java.math.BigDecimal;
 
 @Service
 public class CustomerService {
@@ -23,5 +26,31 @@ public class CustomerService {
         return BankingMapper.toCustomerResponse(customer);
     }
 
-    // create/update/delete analog
+    public CustomerResponseDTO create(CustomerRequestDTO dto) {
+        Customer customer = new Customer();
+        customer.setName(dto.name());
+        customer.setEmail(dto.email());
+
+        Customer saved = customerRepository.save(customer);
+
+        return BankingMapper.toCustomerResponse(saved);
+    }
+    public CustomerResponseDTO update(Long id, CustomerRequestDTO dto) {
+        Customer customer = customerRepository.findById(id)
+                .orElseThrow(() -> new CustomerNotFoundException(id));
+
+        customer.setName(dto.name());
+        customer.setEmail(dto.email());
+
+        Customer saved = customerRepository.save(customer);
+
+        return BankingMapper.toCustomerResponse(saved);
+    }
+
+    public void delete(Long id) {
+        if (!customerRepository.existsById(id)) {
+            throw new CustomerNotFoundException(id);
+        }
+        customerRepository.deleteById(id);
+    }
 }
