@@ -11,7 +11,7 @@ import org.example.exception.DuplicateIbanException;
 import org.example.repository.AccountRepository;
 import org.example.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
-
+import java.util.List;
 import java.math.BigDecimal;
 
 @Service
@@ -50,4 +50,12 @@ public class AccountService {
 
         return BankingMapper.toAccountResponse(account);
     }
+
+    public List<AccountResponseDTO> getAll() {
+        return accountRepository.findAll()
+                .stream()
+                .map(BankingMapper::toAccountResponse)
+                .toList();
+    }
+
 }

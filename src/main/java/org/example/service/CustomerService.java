@@ -1,14 +1,12 @@
 package org.example.service;
 
 import org.example.dto.*;
-import org.example.entity.Account;
 import org.example.entity.Customer;
 import org.example.exception.CustomerNotFoundException;
-import org.example.exception.DuplicateIbanException;
 import org.example.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
 
-import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class CustomerService {
@@ -53,4 +51,12 @@ public class CustomerService {
         }
         customerRepository.deleteById(id);
     }
+
+    public List<CustomerResponseDTO> getAll() {
+        return customerRepository.findAll()
+                .stream()
+                .map(BankingMapper::toCustomerResponse)
+                .toList();
+    }
+
 }

@@ -36,10 +36,9 @@ public class TransactionService {
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         BigDecimal amount = dto.amount();
-        // Betrag > 0 ist idealerweise via Bean Validation erledigt.
 
         account.setBalance(account.getBalance().add(amount));
-        accountRepository.save(account); // meist optional, aber für Anfänger oft klar
+        accountRepository.save(account);
 
         Transaction tx = new Transaction();
         tx.setAccount(account);
