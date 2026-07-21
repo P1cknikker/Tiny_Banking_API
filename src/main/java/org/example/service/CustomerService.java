@@ -1,5 +1,6 @@
 package org.example.service;
 
+import org.example.dto.BankingMapper;
 import org.example.dto.CustomerResponseDTO;
 import org.example.entity.Customer;
 import org.example.exception.CustomerNotFoundException;
@@ -19,8 +20,7 @@ public class CustomerService {
         Customer customer = customerRepository.findById(id)
                 .orElseThrow(() -> new CustomerNotFoundException(id));
 
-        // TODO: Mapping
-        return mapCustomerToResponse(customer);
+        return BankingMapper.toCustomerResponse(customer);
     }
 
     // create/update/delete analog

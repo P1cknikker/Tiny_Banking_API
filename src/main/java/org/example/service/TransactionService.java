@@ -1,6 +1,7 @@
 package org.example.service;
 
 import jakarta.transaction.Transactional;
+import org.example.dto.BankingMapper;
 import org.example.dto.DepositRequestDTO;
 import org.example.dto.TransactionResponseDTO;
 import org.example.dto.WithdrawRequestDTO;
@@ -78,6 +79,6 @@ public class TransactionService {
         List<Transaction> txs = transactionRepository
                 .findByAccountIdOrderByTimestampDesc(accountId);
 
-        return txs.stream().map(this::mapTransactionToResponse).toList();
+        return txs.stream().map(BankingMapper::toTransactionResponse).toList();
     }
 }

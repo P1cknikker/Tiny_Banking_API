@@ -2,6 +2,7 @@ package org.example.service;
 
 import org.example.dto.AccountRequestDTO;
 import org.example.dto.AccountResponseDTO;
+import org.example.dto.BankingMapper;
 import org.example.entity.Account;
 import org.example.entity.Customer;
 import org.example.exception.AccountNotFoundException;
@@ -40,15 +41,13 @@ public class AccountService {
 
         Account saved = accountRepository.save(account);
 
-        // TODO: Mapping später
-        return mapAccountToResponse(saved);
+        return BankingMapper.toAccountResponse(saved);
     }
 
     public AccountResponseDTO getAccount(Long id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException(id));
-        // Achtung: hier müsstest du ggf. AccountNotFoundException nutzen – kommt auf deine Exception-Logik an.
-        // Ziel: "Account nicht gefunden" => AccountNotFoundException (404)
-        return mapAccountToResponse(account);
+
+        return BankingMapper.toAccountResponse(account);
     }
 }
