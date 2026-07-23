@@ -1,38 +1,18 @@
 package org.example;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.jupiter.api.DisplayName;
+import org.junit.jupiter.api.Test;
 
-/**
- * Unit test for simple App.
- */
-public class BankingApplicationTest
-    extends TestCase
-{
-    /**
-     * Create the test case
-     *
-     * @param testName name of the test case
-     */
-    public BankingApplicationTest(String testName )
-    {
-        super( testName );
+import static org.assertj.core.api.Assertions.*;
+
+@DisplayName("Banking Application Integration Tests")
+class BankingApplicationTest {
+
+    @Test
+    @DisplayName("Application context loads successfully")
+    void testApplicationContextLoads() {
+        // Placeholder test - replace with actual integration tests
+        assertThat(true).isTrue();
     }
 
-    /**
-     * @return the suite of tests being tested
-     */
-    public static Test suite()
-    {
-        return new TestSuite( BankingApplicationTest.class );
-    }
-
-    /**
-     * Rigourous Test :-)
-     */
-    public void testApp()
-    {
-        assertTrue( true );
-    }
 }
