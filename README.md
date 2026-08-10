@@ -1,0 +1,2 @@
+- API-Design for banking systems regarding datamodelling, businesslogic, validation, errorhandling and testing
+- tech stack: Java, Spring Web, Spring Boot, Spring Data JPA, H2, Bean Validation, JUnit + Mockito, Logging
