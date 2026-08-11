@@ -1,8 +1,10 @@
 package org.example.controller;
 
 import jakarta.validation.Valid;
+import org.example.dto.AccountResponseDTO;
 import org.example.dto.CustomerRequestDTO;
 import org.example.dto.CustomerResponseDTO;
+import org.example.service.AccountService;
 import org.example.service.CustomerService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,9 +21,11 @@ public class CustomerController {
     private static final Logger log = LoggerFactory.getLogger(CustomerController.class);
 
     private final CustomerService customerService;
+    private final AccountService accountService;
 
-    public CustomerController(CustomerService customerService) {
+    public CustomerController(CustomerService customerService, AccountService accountService) {
         this.customerService = customerService;
+        this.accountService = accountService;
     }
 
     @GetMapping
@@ -39,23 +43,29 @@ public class CustomerController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<CustomerResponseDTO> getCustomerById(@PathVariable Long id) {
+    public ResponseEntity<CustomerResponseDTO> getCustomerById(@PathVariable("id") Long id) {
         log.info("Fetching customer with id: {}", id);
         return ResponseEntity.ok(customerService.getById(id));
     }
 
     @PutMapping("/{id}")
     public ResponseEntity<CustomerResponseDTO> updateCustomer(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody CustomerRequestDTO requestDTO) {
         log.info("Updating customer with id: {}", id);
         return ResponseEntity.ok(customerService.update(id, requestDTO));
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCustomer(@PathVariable Long id) {
+    public ResponseEntity<Void> deleteCustomer(@PathVariable("id") Long id) {
         log.info("Deleting customer with id: {}", id);
         customerService.delete(id);
         return ResponseEntity.noContent().build();
+    }
+
+    @GetMapping("/{id}/accounts")
+    public ResponseEntity<List<AccountResponseDTO>> getAccountsByCustomer(@PathVariable("id") Long id) {
+        log.info("Fetching accounts for customer id: {}", id);
+        return ResponseEntity.ok(accountService.getAllByCustomerId(id));
     }
 }

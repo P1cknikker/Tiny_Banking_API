@@ -12,13 +12,6 @@ import java.util.Optional;
 @Repository
 public interface AccountRepository extends JpaRepository<Account, Long> {
 
-    /**
-     * Finds an account by IBAN.
-     * IBAN is unique, so at most one account will be returned.
-     *
-     * @param iban the IBAN to search for
-     * @return Optional containing the account if found, empty otherwise
-     */
     Optional<Account> findByIban(String iban);
 
     @Query("SELECT a FROM Account a JOIN FETCH a.customer WHERE a.id = :id")
@@ -27,13 +20,8 @@ public interface AccountRepository extends JpaRepository<Account, Long> {
     @Query("SELECT a FROM Account a JOIN FETCH a.customer")
     List<Account> findAllWithCustomer();
 
-    /**
-     * Finds all accounts for a specific customer.
-     *
-     * @param customerId the customer ID
-     * @return List of accounts belonging to the customer
-     */
-    List<Account> findByCustomerId(Long customerId);
+    @Query("SELECT a FROM Account a JOIN FETCH a.customer WHERE a.customer.id = :customerId")
+    List<Account> findByCustomerId(@Param("customerId") Long customerId);
 
     boolean existsByCustomerId(Long customerId);
 

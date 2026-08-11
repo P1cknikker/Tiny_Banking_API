@@ -43,14 +43,14 @@ public class AccountController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<AccountResponseDTO> getAccount(@PathVariable Long id) {
+    public ResponseEntity<AccountResponseDTO> getAccount(@PathVariable("id") Long id) {
         log.info("Fetching account with id: {}", id);
         return ResponseEntity.ok(accountService.getAccount(id));
     }
 
     @PostMapping("/{id}/deposit")
     public ResponseEntity<Void> deposit(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody DepositRequestDTO requestDTO) {
         log.info("Depositing {} to account {}", requestDTO.amount(), id);
         transactionService.deposit(id, requestDTO);
@@ -59,7 +59,7 @@ public class AccountController {
 
     @PostMapping("/{id}/withdraw")
     public ResponseEntity<Void> withdraw(
-            @PathVariable Long id,
+            @PathVariable("id") Long id,
             @Valid @RequestBody WithdrawRequestDTO requestDTO) {
         log.info("Withdrawing {} from account {}", requestDTO.amount(), id);
         transactionService.withdraw(id, requestDTO);
@@ -67,7 +67,7 @@ public class AccountController {
     }
 
     @GetMapping("/{id}/transactions")
-    public ResponseEntity<List<TransactionResponseDTO>> getTransactions(@PathVariable Long id) {
+    public ResponseEntity<List<TransactionResponseDTO>> getTransactions(@PathVariable("id") Long id) {
         log.info("Fetching transactions for account {}", id);
         return ResponseEntity.ok(transactionService.getTransactionsForAccount(id));
     }

@@ -10,6 +10,8 @@ import org.example.exception.CustomerNotFoundException;
 import org.example.exception.DuplicateIbanException;
 import org.example.repository.AccountRepository;
 import org.example.repository.CustomerRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -18,6 +20,8 @@ import java.util.List;
 
 @Service
 public class AccountService {
+
+    private static final Logger log = LoggerFactory.getLogger(AccountService.class);
 
     private final AccountRepository accountRepository;
     private final CustomerRepository customerRepository;
@@ -30,6 +34,7 @@ public class AccountService {
 
     @Transactional
     public AccountResponseDTO createAccount(AccountRequestDTO dto) {
+        log.info("Creating account iban={} for customerId={}", dto.iban(), dto.customerId());
         Customer customer = customerRepository.findById(dto.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException(dto.customerId()));
 
@@ -43,11 +48,13 @@ public class AccountService {
         account.setCustomer(customer);
 
         Account saved = accountRepository.save(account);
+        log.info("Created account id={}", saved.getId());
         return BankingMapper.toAccountResponse(saved);
     }
 
     @Transactional(readOnly = true)
     public AccountResponseDTO getAccount(Long id) {
+        log.debug("Loading account {}", id);
         Account account = accountRepository.findByIdWithCustomer(id)
                 .orElseThrow(() -> new AccountNotFoundException(id));
         return BankingMapper.toAccountResponse(account);
@@ -55,6 +62,7 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public List<AccountResponseDTO> getAll() {
+        log.debug("Loading all accounts");
         return accountRepository.findAllWithCustomer().stream()
                 .map(BankingMapper::toAccountResponse)
                 .toList();
@@ -62,6 +70,7 @@ public class AccountService {
 
     @Transactional(readOnly = true)
     public List<AccountResponseDTO> getAllByCustomerId(Long customerId) {
+        log.debug("Loading accounts for customer {}", customerId);
         if (!customerRepository.existsById(customerId)) {
             throw new CustomerNotFoundException(customerId);
         }

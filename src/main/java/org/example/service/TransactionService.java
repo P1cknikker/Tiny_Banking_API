@@ -11,6 +11,8 @@ import org.example.exception.AccountNotFoundException;
 import org.example.exception.InsufficientBalanceException;
 import org.example.repository.AccountRepository;
 import org.example.repository.TransactionRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -20,6 +22,8 @@ import java.util.List;
 
 @Service
 public class TransactionService {
+
+    private static final Logger log = LoggerFactory.getLogger(TransactionService.class);
 
     private final AccountRepository accountRepository;
     private final TransactionRepository transactionRepository;
@@ -32,6 +36,7 @@ public class TransactionService {
 
     @Transactional
     public void deposit(Long accountId, DepositRequestDTO dto) {
+        log.info("Deposit amount={} to accountId={}", dto.amount(), accountId);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
@@ -45,10 +50,12 @@ public class TransactionService {
         tx.setAmount(amount);
         tx.setTimestamp(Instant.now());
         transactionRepository.save(tx);
+        log.info("Deposit done accountId={} newBalance={}", accountId, account.getBalance());
     }
 
     @Transactional
     public void withdraw(Long accountId, WithdrawRequestDTO dto) {
+        log.info("Withdraw amount={} from accountId={}", dto.amount(), accountId);
         Account account = accountRepository.findById(accountId)
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
@@ -67,10 +74,12 @@ public class TransactionService {
         tx.setAmount(amount);
         tx.setTimestamp(Instant.now());
         transactionRepository.save(tx);
+        log.info("Withdraw done accountId={} newBalance={}", accountId, account.getBalance());
     }
 
     @Transactional(readOnly = true)
     public List<TransactionResponseDTO> getTransactionsForAccount(Long accountId) {
+        log.debug("Loading transactions for account {}", accountId);
         if (!accountRepository.existsById(accountId)) {
             throw new AccountNotFoundException(accountId);
         }
