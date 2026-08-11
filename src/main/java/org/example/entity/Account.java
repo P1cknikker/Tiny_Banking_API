@@ -8,12 +8,12 @@ import java.math.BigDecimal;
 @Table(name = "accounts",
         uniqueConstraints = @UniqueConstraint(columnNames = "iban"))
 public class Account {
-    //Declaration
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, length = 34) //IBAN max
+    @Column(nullable = false, length = 34)
     private String iban;
 
     @Column(nullable = false, precision = 19, scale = 2)
@@ -23,23 +23,10 @@ public class Account {
     @JoinColumn(name = "customer_id", nullable = false)
     private Customer customer;
 
-    //getter and setter
-
-    public BigDecimal getBalance() { return balance; }
-    public void setBalance(BigDecimal balance) {
-        this.balance = balance;
-    }
-
-    public Customer getCustomer() {
-        return customer;
-    }
-    public void setCustomer(Customer customer) {
-        this.customer = customer;
-    }
-
     public Long getId() {
         return id;
     }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -47,7 +34,24 @@ public class Account {
     public String getIban() {
         return iban;
     }
+
     public void setIban(String iban) {
         this.iban = iban;
+    }
+
+    public BigDecimal getBalance() {
+        return balance;
+    }
+
+    public void setBalance(BigDecimal balance) {
+        this.balance = balance;
+    }
+
+    public Customer getCustomer() {
+        return customer;
+    }
+
+    public void setCustomer(Customer customer) {
+        this.customer = customer;
     }
 }

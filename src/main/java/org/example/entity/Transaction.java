@@ -8,6 +8,7 @@ import java.time.Instant;
 @Entity
 @Table(name = "transactions")
 public class Transaction {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -26,8 +27,10 @@ public class Transaction {
     @Column(nullable = false)
     private Instant timestamp;
 
-    // getters/setters
-    public Long getId() { return id; }
+    public Long getId() {
+        return id;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -35,13 +38,23 @@ public class Transaction {
     public Account getAccount() {
         return account;
     }
+
     public void setAccount(Account account) {
         this.account = account;
+    }
+
+    public TransactionType getType() {
+        return type;
+    }
+
+    public void setType(TransactionType type) {
+        this.type = type;
     }
 
     public BigDecimal getAmount() {
         return amount;
     }
+
     public void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
@@ -49,14 +62,8 @@ public class Transaction {
     public Instant getTimestamp() {
         return timestamp;
     }
+
     public void setTimestamp(Instant timestamp) {
         this.timestamp = timestamp;
-    }
-
-    public TransactionType getType() {
-        return type;
-    }
-    public void setType(TransactionType type) {
-        this.type = type;
     }
 }

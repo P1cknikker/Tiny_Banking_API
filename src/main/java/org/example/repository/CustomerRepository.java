@@ -17,4 +17,6 @@ public interface CustomerRepository extends JpaRepository<Customer, Long> {
      * @return Optional containing the customer if found, empty otherwise
      */
     Optional<Customer> findByEmail(String email);
+
+    boolean existsByEmail(String email);
 }

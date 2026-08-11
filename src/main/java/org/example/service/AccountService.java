@@ -25,7 +25,9 @@ public class AccountService {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
     }
-
+    /**
+     * creates an account for a specific customer.
+     */
     public AccountResponseDTO createAccount(AccountRequestDTO dto) {
         Customer customer = customerRepository.findById(dto.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException(dto.customerId()));
@@ -43,19 +45,31 @@ public class AccountService {
 
         return BankingMapper.toAccountResponse(saved);
     }
-
+    /**
+     * Get a specific account for a specific customer.
+     */
     public AccountResponseDTO getAccount(Long id) {
         Account account = accountRepository.findById(id)
                 .orElseThrow(() -> new AccountNotFoundException(id));
 
         return BankingMapper.toAccountResponse(account);
     }
-
+    /**
+     * Get all accounts in the system (Admin-only, optional).
+     */
     public List<AccountResponseDTO> getAll() {
         return accountRepository.findAll()
                 .stream()
                 .map(BankingMapper::toAccountResponse)
                 .toList();
     }
-
+//    /**
+//     * Get all accounts for a specific customer.
+//     */
+//    public List<AccountResponseDTO> getAllByCustomerId(Long customerId) {
+//        return accountRepository.findByCustomerId(customerId)
+//                .stream()
+//                .map(BankingMapper::toAccountResponse)
+//                .toList();
+//    }
 }
