@@ -11,8 +11,10 @@ import org.example.exception.DuplicateIbanException;
 import org.example.repository.AccountRepository;
 import org.example.repository.CustomerRepository;
 import org.springframework.stereotype.Service;
-import java.util.List;
+import org.springframework.transaction.annotation.Transactional;
+
 import java.math.BigDecimal;
+import java.util.List;
 
 @Service
 public class AccountService {
@@ -25,9 +27,8 @@ public class AccountService {
         this.accountRepository = accountRepository;
         this.customerRepository = customerRepository;
     }
-    /**
-     * creates an account for a specific customer.
-     */
+
+    @Transactional
     public AccountResponseDTO createAccount(AccountRequestDTO dto) {
         Customer customer = customerRepository.findById(dto.customerId())
                 .orElseThrow(() -> new CustomerNotFoundException(dto.customerId()));
@@ -42,34 +43,30 @@ public class AccountService {
         account.setCustomer(customer);
 
         Account saved = accountRepository.save(account);
-
         return BankingMapper.toAccountResponse(saved);
     }
-    /**
-     * Get a specific account for a specific customer.
-     */
-    public AccountResponseDTO getAccount(Long id) {
-        Account account = accountRepository.findById(id)
-                .orElseThrow(() -> new AccountNotFoundException(id));
 
+    @Transactional(readOnly = true)
+    public AccountResponseDTO getAccount(Long id) {
+        Account account = accountRepository.findByIdWithCustomer(id)
+                .orElseThrow(() -> new AccountNotFoundException(id));
         return BankingMapper.toAccountResponse(account);
     }
-    /**
-     * Get all accounts in the system (Admin-only, optional).
-     */
+
+    @Transactional(readOnly = true)
     public List<AccountResponseDTO> getAll() {
-        return accountRepository.findAll()
-                .stream()
+        return accountRepository.findAllWithCustomer().stream()
                 .map(BankingMapper::toAccountResponse)
                 .toList();
     }
-//    /**
-//     * Get all accounts for a specific customer.
-//     */
-//    public List<AccountResponseDTO> getAllByCustomerId(Long customerId) {
-//        return accountRepository.findByCustomerId(customerId)
-//                .stream()
-//                .map(BankingMapper::toAccountResponse)
-//                .toList();
-//    }
+
+    @Transactional(readOnly = true)
+    public List<AccountResponseDTO> getAllByCustomerId(Long customerId) {
+        if (!customerRepository.existsById(customerId)) {
+            throw new CustomerNotFoundException(customerId);
+        }
+        return accountRepository.findByCustomerId(customerId).stream()
+                .map(BankingMapper::toAccountResponse)
+                .toList();
+    }
 }

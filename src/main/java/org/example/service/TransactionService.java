@@ -1,6 +1,5 @@
 package org.example.service;
 
-import jakarta.transaction.Transactional;
 import org.example.dto.BankingMapper;
 import org.example.dto.DepositRequestDTO;
 import org.example.dto.TransactionResponseDTO;
@@ -13,6 +12,7 @@ import org.example.exception.InsufficientBalanceException;
 import org.example.repository.AccountRepository;
 import org.example.repository.TransactionRepository;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.time.Instant;
@@ -36,7 +36,6 @@ public class TransactionService {
                 .orElseThrow(() -> new AccountNotFoundException(accountId));
 
         BigDecimal amount = dto.amount();
-
         account.setBalance(account.getBalance().add(amount));
         accountRepository.save(account);
 
@@ -45,7 +44,6 @@ public class TransactionService {
         tx.setType(TransactionType.DEPOSIT);
         tx.setAmount(amount);
         tx.setTimestamp(Instant.now());
-
         transactionRepository.save(tx);
     }
 
@@ -68,15 +66,19 @@ public class TransactionService {
         tx.setType(TransactionType.WITHDRAW);
         tx.setAmount(amount);
         tx.setTimestamp(Instant.now());
-
         transactionRepository.save(tx);
     }
 
+    @Transactional(readOnly = true)
     public List<TransactionResponseDTO> getTransactionsForAccount(Long accountId) {
-        // optional: Account existieren prüfen; oder direkt TransactionRepository abfragen
-        List<Transaction> txs = transactionRepository
-                .findByAccountIdOrderByTimestampDesc(accountId);
+        if (!accountRepository.existsById(accountId)) {
+            throw new AccountNotFoundException(accountId);
+        }
 
-        return txs.stream().map(BankingMapper::toTransactionResponse).toList();
+        return transactionRepository
+                .findByAccountIdOrderByTimestampDesc(accountId)
+                .stream()
+                .map(BankingMapper::toTransactionResponse)
+                .toList();
     }
 }
