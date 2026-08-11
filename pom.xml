@@ -20,6 +20,8 @@
 
     <properties>
         <java.version>17</java.version>
+        <!-- Kompatibel zu Hibernate 6.5.2 (Spring Boot 3.3.2) – nicht 1.17.x -->
+        <byte-buddy.version>1.14.18</byte-buddy.version>
     </properties>
 
     <dependencies>
@@ -44,6 +46,12 @@
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-test</artifactId>
             <scope>test</scope>
+        </dependency>
+        <!-- Explizit, damit die Klasse für Hibernate sicher auf dem Classpath liegt -->
+        <dependency>
+            <groupId>net.bytebuddy</groupId>
+            <artifactId>byte-buddy</artifactId>
+            <version>${byte-buddy.version}</version>
         </dependency>
     </dependencies>
 
