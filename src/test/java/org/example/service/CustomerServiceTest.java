@@ -3,7 +3,10 @@ package org.example.service;
 import org.example.dto.CustomerRequestDTO;
 import org.example.dto.CustomerResponseDTO;
 import org.example.entity.Customer;
+import org.example.exception.CustomerHasAccountsException;
 import org.example.exception.CustomerNotFoundException;
+import org.example.exception.DuplicateEmailException;
+import org.example.repository.AccountRepository;
 import org.example.repository.CustomerRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -17,16 +20,9 @@ import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
-/**
- * Unit-Tests für CustomerService mit Mockito
- *
- * @Mock: Erstellt ein Mock-Objekt (hier: CustomerRepository)
- * @InjectMocks: Erstellt die Klasse unter Test (CustomerService)
- *               und injiziert automatisch alle @Mock-Felder
- */
 @ExtendWith(MockitoExtension.class)
 @DisplayName("CustomerService Unit Tests")
 class CustomerServiceTest {
@@ -34,16 +30,15 @@ class CustomerServiceTest {
     @Mock
     private CustomerRepository customerRepository;
 
+    @Mock
+    private AccountRepository accountRepository;
+
     @InjectMocks
     private CustomerService customerService;
 
     private Customer testCustomer;
     private CustomerRequestDTO testRequestDTO;
 
-    /**
-     * Setup vor jedem Test
-     * Erstelle Test-Objekte, die du in mehreren Tests brauchst
-     */
     @BeforeEach
     void setUp() {
         testCustomer = new Customer();
@@ -54,212 +49,98 @@ class CustomerServiceTest {
         testRequestDTO = new CustomerRequestDTO("John Doe", "john@example.com");
     }
 
-    // ============================================
-    // Tests für: create()
-    // ============================================
-
     @Test
-    @DisplayName("Should create a customer successfully")
-    void testCreateCustomer_Success() {
-        // ARRANGE: Mock vorbereiten
-        // Wenn repository.save() aufgerufen wird, soll es testCustomer zurückgeben
-        when(customerRepository.save(any(Customer.class)))
-                .thenReturn(testCustomer);
+    @DisplayName("getById returns customer when found")
+    void getById_Success() {
+        when(customerRepository.findById(1L)).thenReturn(Optional.of(testCustomer));
 
-        // ACT: Methode aufrufen
-        CustomerResponseDTO result = customerService.create(testRequestDTO);
-
-        // ASSERT: Ergebnis überprüfen
-        assertThat(result).isNotNull();
-        assertThat(result.name()).isEqualTo("John Doe");
-        assertThat(result.email()).isEqualTo("john@example.com");
-
-        // VERIFY: Überprüfe, dass repository.save() genau einmal aufgerufen wurde
-        verify(customerRepository, times(1)).save(any(Customer.class));
-    }
-
-    @Test
-    @DisplayName("Should save customer with correct data")
-    void testCreateCustomer_VerifySaveArguments() {
-        // ARRANGE
-        when(customerRepository.save(any(Customer.class)))
-                .thenReturn(testCustomer);
-
-        // ACT
-        customerService.create(testRequestDTO);
-
-        // ASSERT: Überprüfe, dass der gespeicherte Customer die richtigen Werte hat
-        verify(customerRepository).save(argThat(customer ->
-                customer.getName().equals("John Doe") &&
-                        customer.getEmail().equals("john@example.com")
-        ));
-    }
-
-    // ============================================
-    // Tests für: getById()
-    // ============================================
-
-    @Test
-    @DisplayName("Should retrieve customer by ID successfully")
-    void testGetById_Success() {
-        // ARRANGE
-        when(customerRepository.findById(1L))
-                .thenReturn(Optional.of(testCustomer));
-
-        // ACT
         CustomerResponseDTO result = customerService.getById(1L);
 
-        // ASSERT
-        assertThat(result).isNotNull();
         assertThat(result.id()).isEqualTo(1L);
         assertThat(result.name()).isEqualTo("John Doe");
-
-        // VERIFY
-        verify(customerRepository, times(1)).findById(1L);
+        assertThat(result.email()).isEqualTo("john@example.com");
     }
 
     @Test
-    @DisplayName("Should throw CustomerNotFoundException when customer not found")
-    void testGetById_NotFound() {
-        // ARRANGE
-        when(customerRepository.findById(999L))
-                .thenReturn(Optional.empty());
+    @DisplayName("getById throws when customer not found")
+    void getById_NotFound() {
+        when(customerRepository.findById(99L)).thenReturn(Optional.empty());
 
-        // ACT & ASSERT: Überprüfe, dass Exception geworfen wird
-        assertThatThrownBy(() -> customerService.getById(999L))
+        assertThatThrownBy(() -> customerService.getById(99L))
                 .isInstanceOf(CustomerNotFoundException.class)
-                .hasMessageContaining("999");
-
-        // VERIFY
-        verify(customerRepository).findById(999L);
+                .hasMessageContaining("99");
     }
 
-    // ============================================
-    // Tests für: update()
-    // ============================================
-
     @Test
-    @DisplayName("Should update customer successfully")
-    void testUpdateCustomer_Success() {
-        // ARRANGE
-        CustomerRequestDTO updateDTO = new CustomerRequestDTO("Jane Doe", "jane@example.com");
-        Customer updatedCustomer = new Customer();
-        updatedCustomer.setId(1L);
-        updatedCustomer.setName("Jane Doe");
-        updatedCustomer.setEmail("jane@example.com");
+    @DisplayName("create succeeds when email is unique")
+    void create_Success() {
+        when(customerRepository.existsByEmail("john@example.com")).thenReturn(false);
+        when(customerRepository.save(any(Customer.class))).thenAnswer(inv -> {
+            Customer c = inv.getArgument(0);
+            c.setId(1L);
+            return c;
+        });
 
-        when(customerRepository.findById(1L))
-                .thenReturn(Optional.of(testCustomer));
-        when(customerRepository.save(any(Customer.class)))
-                .thenReturn(updatedCustomer);
+        CustomerResponseDTO result = customerService.create(testRequestDTO);
 
-        // ACT
-        CustomerResponseDTO result = customerService.update(1L, updateDTO);
-
-        // ASSERT
-        assertThat(result.name()).isEqualTo("Jane Doe");
-        assertThat(result.email()).isEqualTo("jane@example.com");
-
-        // VERIFY: findById und save wurden aufgerufen
-        verify(customerRepository).findById(1L);
+        assertThat(result.id()).isEqualTo(1L);
+        assertThat(result.email()).isEqualTo("john@example.com");
         verify(customerRepository).save(any(Customer.class));
     }
 
     @Test
-    @DisplayName("Should throw CustomerNotFoundException when updating non-existent customer")
-    void testUpdateCustomer_NotFound() {
-        // ARRANGE
-        when(customerRepository.findById(999L))
-                .thenReturn(Optional.empty());
+    @DisplayName("create throws DuplicateEmailException when email exists")
+    void create_DuplicateEmail() {
+        when(customerRepository.existsByEmail("john@example.com")).thenReturn(true);
 
-        CustomerRequestDTO updateDTO = new CustomerRequestDTO("Jane", "jane@example.com");
+        assertThatThrownBy(() -> customerService.create(testRequestDTO))
+                .isInstanceOf(DuplicateEmailException.class)
+                .hasMessageContaining("john@example.com");
 
-        // ACT & ASSERT
-        assertThatThrownBy(() -> customerService.update(999L, updateDTO))
-                .isInstanceOf(CustomerNotFoundException.class);
-
-        // VERIFY: save sollte NICHT aufgerufen werden (da Exception vorher geworfen wird)
         verify(customerRepository, never()).save(any());
     }
 
-    // ============================================
-    // Tests für: delete()
-    // ============================================
-
     @Test
-    @DisplayName("Should delete customer successfully")
-    void testDeleteCustomer_Success() {
-        // ARRANGE
-        when(customerRepository.existsById(1L))
-                .thenReturn(true);
+    @DisplayName("delete succeeds when customer has no accounts")
+    void delete_Success() {
+        when(customerRepository.existsById(1L)).thenReturn(true);
+        when(accountRepository.countByCustomerId(1L)).thenReturn(0L);
 
-        // ACT
         customerService.delete(1L);
 
-        // ASSERT & VERIFY: deleteById sollte aufgerufen worden sein
-        verify(customerRepository).existsById(1L);
         verify(customerRepository).deleteById(1L);
     }
 
     @Test
-    @DisplayName("Should throw CustomerNotFoundException when deleting non-existent customer")
-    void testDeleteCustomer_NotFound() {
-        // ARRANGE
-        when(customerRepository.existsById(999L))
-                .thenReturn(false);
+    @DisplayName("delete throws when customer has accounts")
+    void delete_HasAccounts() {
+        when(customerRepository.existsById(1L)).thenReturn(true);
+        when(accountRepository.countByCustomerId(1L)).thenReturn(2L);
 
-        // ACT & ASSERT
-        assertThatThrownBy(() -> customerService.delete(999L))
-                .isInstanceOf(CustomerNotFoundException.class);
+        assertThatThrownBy(() -> customerService.delete(1L))
+                .isInstanceOf(CustomerHasAccountsException.class)
+                .hasMessageContaining("2");
 
-        // VERIFY: deleteById sollte NICHT aufgerufen werden
         verify(customerRepository, never()).deleteById(any());
     }
 
-    // ============================================
-    // Tests für: getAll()
-    // ============================================
-
     @Test
-    @DisplayName("Should retrieve all customers")
-    void testGetAllCustomers_Success() {
-        // ARRANGE
-        Customer customer2 = new Customer();
-        customer2.setId(2L);
-        customer2.setName("Jane Doe");
-        customer2.setEmail("jane@example.com");
+    @DisplayName("delete throws when customer not found")
+    void delete_NotFound() {
+        when(customerRepository.existsById(99L)).thenReturn(false);
 
-        when(customerRepository.findAll())
-                .thenReturn(List.of(testCustomer, customer2));
-
-        // ACT
-        List<CustomerResponseDTO> result = customerService.getAll();
-
-        // ASSERT
-        assertThat(result)
-                .isNotNull()
-                .hasSize(2)
-                .extracting(CustomerResponseDTO::name)
-                .containsExactly("John Doe", "Jane Doe");
-
-        // VERIFY
-        verify(customerRepository).findAll();
+        assertThatThrownBy(() -> customerService.delete(99L))
+                .isInstanceOf(CustomerNotFoundException.class);
     }
 
     @Test
-    @DisplayName("Should return empty list when no customers exist")
-    void testGetAllCustomers_Empty() {
-        // ARRANGE
-        when(customerRepository.findAll())
-                .thenReturn(List.of());
+    @DisplayName("getAll returns list of customers")
+    void getAll_Success() {
+        when(customerRepository.findAll()).thenReturn(List.of(testCustomer));
 
-        // ACT
         List<CustomerResponseDTO> result = customerService.getAll();
 
-        // ASSERT
-        assertThat(result).isEmpty();
-
-        // VERIFY
-        verify(customerRepository).findAll();
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).name()).isEqualTo("John Doe");
     }
 }

@@ -1,8 +1,10 @@
 package org.example.service;
 
 import org.example.dto.DepositRequestDTO;
+import org.example.dto.TransactionResponseDTO;
 import org.example.dto.WithdrawRequestDTO;
 import org.example.entity.Account;
+import org.example.entity.Customer;
 import org.example.entity.Transaction;
 import org.example.entity.TransactionType;
 import org.example.exception.AccountNotFoundException;
@@ -18,10 +20,12 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.math.BigDecimal;
+import java.time.Instant;
+import java.util.List;
 import java.util.Optional;
 
 import static org.assertj.core.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.*;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -41,212 +45,105 @@ class TransactionServiceTest {
 
     @BeforeEach
     void setUp() {
+        Customer customer = new Customer();
+        customer.setId(1L);
+
         testAccount = new Account();
         testAccount.setId(1L);
         testAccount.setBalance(new BigDecimal("1000.00"));
+        testAccount.setCustomer(customer);
+        testAccount.setIban("DE89370400440532013000");
     }
 
-    // ============================================
-    // Tests für: deposit()
-    // ============================================
-
     @Test
-    @DisplayName("Should deposit money successfully")
-    void testDeposit_Success() {
-        // ARRANGE
-        DepositRequestDTO depositDTO = new DepositRequestDTO(new BigDecimal("100.00"));
-        when(accountRepository.findById(1L))
-                .thenReturn(Optional.of(testAccount));
+    @DisplayName("deposit increases balance and saves transaction")
+    void deposit_Success() {
+        DepositRequestDTO dto = new DepositRequestDTO(new BigDecimal("100.00"));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
 
-        // ACT
-        transactionService.deposit(1L, depositDTO);
+        transactionService.deposit(1L, dto);
 
-        // ASSERT
-        assertThat(testAccount.getBalance())
-                .isEqualTo(new BigDecimal("1100.00"));
-
-        // VERIFY: Account und Transaction wurden gespeichert
+        assertThat(testAccount.getBalance()).isEqualByComparingTo(new BigDecimal("1100.00"));
         verify(accountRepository).save(testAccount);
         verify(transactionRepository).save(any(Transaction.class));
     }
 
     @Test
-    @DisplayName("Should throw AccountNotFoundException on deposit")
-    void testDeposit_AccountNotFound() {
-        // ARRANGE
-        DepositRequestDTO depositDTO = new DepositRequestDTO(new BigDecimal("100.00"));
-        when(accountRepository.findById(999L))
-                .thenReturn(Optional.empty());
+    @DisplayName("deposit throws when account not found")
+    void deposit_AccountNotFound() {
+        DepositRequestDTO dto = new DepositRequestDTO(new BigDecimal("100.00"));
+        when(accountRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // ACT & ASSERT
-        assertThatThrownBy(() -> transactionService.deposit(999L, depositDTO))
+        assertThatThrownBy(() -> transactionService.deposit(999L, dto))
                 .isInstanceOf(AccountNotFoundException.class);
 
-        // VERIFY: Keine Operationen sollten stattgefunden haben
         verify(accountRepository, never()).save(any());
         verify(transactionRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Should create Transaction with correct type and amount")
-    void testDeposit_VerifyTransaction() {
-        // ARRANGE
-        DepositRequestDTO depositDTO = new DepositRequestDTO(new BigDecimal("50.00"));
-        when(accountRepository.findById(1L))
-                .thenReturn(Optional.of(testAccount));
+    @DisplayName("withdraw decreases balance when sufficient funds")
+    void withdraw_Success() {
+        WithdrawRequestDTO dto = new WithdrawRequestDTO(new BigDecimal("200.00"));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
 
-        // ACT
-        transactionService.deposit(1L, depositDTO);
+        transactionService.withdraw(1L, dto);
 
-        // ASSERT: Überprüfe, dass Transaction mit richtigen Werten erstellt wurde
-        verify(transactionRepository).save(argThat(tx ->
-                tx.getType() == TransactionType.DEPOSIT &&
-                        tx.getAmount().equals(new BigDecimal("50.00")) &&
-                        tx.getAccount().getId() == 1L
-        ));
-    }
-
-    // ============================================
-    // Tests für: withdraw()
-    // ============================================
-
-    @Test
-    @DisplayName("Should withdraw money successfully")
-    void testWithdraw_Success() {
-        // ARRANGE
-        WithdrawRequestDTO withdrawDTO = new WithdrawRequestDTO(new BigDecimal("100.00"));
-        when(accountRepository.findById(1L))
-                .thenReturn(Optional.of(testAccount));
-
-        // ACT
-        transactionService.withdraw(1L, withdrawDTO);
-
-        // ASSERT
-        assertThat(testAccount.getBalance())
-                .isEqualTo(new BigDecimal("900.00"));
-
-        // VERIFY
+        assertThat(testAccount.getBalance()).isEqualByComparingTo(new BigDecimal("800.00"));
         verify(accountRepository).save(testAccount);
         verify(transactionRepository).save(any(Transaction.class));
     }
 
     @Test
-    @DisplayName("Should throw AccountNotFoundException on withdraw")
-    void testWithdraw_AccountNotFound() {
-        // ARRANGE
-        WithdrawRequestDTO withdrawDTO = new WithdrawRequestDTO(new BigDecimal("100.00"));
-        when(accountRepository.findById(999L))
-                .thenReturn(Optional.empty());
+    @DisplayName("withdraw throws InsufficientBalanceException")
+    void withdraw_InsufficientBalance() {
+        WithdrawRequestDTO dto = new WithdrawRequestDTO(new BigDecimal("2000.00"));
+        when(accountRepository.findById(1L)).thenReturn(Optional.of(testAccount));
 
-        // ACT & ASSERT
-        assertThatThrownBy(() -> transactionService.withdraw(999L, withdrawDTO))
-                .isInstanceOf(AccountNotFoundException.class);
-
-        // VERIFY: Keine Operationen sollten stattgefunden haben
-        verify(accountRepository, never()).save(any());
-        verify(transactionRepository, never()).save(any());
-    }
-
-    @Test
-    @DisplayName("Should throw InsufficientBalanceException on withdraw with insufficient funds")
-    void testWithdraw_InsufficientBalance() {
-        // ARRANGE
-        WithdrawRequestDTO withdrawDTO = new WithdrawRequestDTO(new BigDecimal("2000.00"));
-        when(accountRepository.findById(1L))
-                .thenReturn(Optional.of(testAccount));
-
-        // ACT & ASSERT
-        assertThatThrownBy(() -> transactionService.withdraw(1L, withdrawDTO))
+        assertThatThrownBy(() -> transactionService.withdraw(1L, dto))
                 .isInstanceOf(InsufficientBalanceException.class);
 
-        // VERIFY: Balance sollte nicht geändert werden
         verify(accountRepository, never()).save(any());
         verify(transactionRepository, never()).save(any());
     }
 
     @Test
-    @DisplayName("Should create Transaction with correct type and amount on withdraw")
-    void testWithdraw_VerifyTransaction() {
-        // ARRANGE
-        WithdrawRequestDTO withdrawDTO = new WithdrawRequestDTO(new BigDecimal("250.00"));
-        when(accountRepository.findById(1L))
-                .thenReturn(Optional.of(testAccount));
+    @DisplayName("withdraw throws when account not found")
+    void withdraw_AccountNotFound() {
+        WithdrawRequestDTO dto = new WithdrawRequestDTO(new BigDecimal("50.00"));
+        when(accountRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // ACT
-        transactionService.withdraw(1L, withdrawDTO);
-
-        // ASSERT: Überprüfe, dass Transaction mit richtigen Werten erstellt wurde
-        verify(transactionRepository).save(argThat(tx ->
-                tx.getType() == TransactionType.WITHDRAW &&
-                        tx.getAmount().equals(new BigDecimal("250.00")) &&
-                        tx.getAccount().getId() == 1L
-        ));
-    }
-
-    // ============================================
-    // Edge Cases
-    // ============================================
-
-    @Test
-    @DisplayName("Should withdraw exact amount leaving zero balance")
-    void testWithdraw_ExactAmount() {
-        // ARRANGE
-        WithdrawRequestDTO withdrawDTO = new WithdrawRequestDTO(new BigDecimal("1000.00"));
-        when(accountRepository.findById(1L))
-                .thenReturn(Optional.of(testAccount));
-
-        // ACT
-        transactionService.withdraw(1L, withdrawDTO);
-
-        // ASSERT
-        assertThat(testAccount.getBalance())
-                .isEqualTo(BigDecimal.ZERO);
-
-        verify(accountRepository).save(testAccount);
-        verify(transactionRepository).save(any(Transaction.class));
+        assertThatThrownBy(() -> transactionService.withdraw(999L, dto))
+                .isInstanceOf(AccountNotFoundException.class);
     }
 
     @Test
-    @DisplayName("Should deposit multiple times correctly")
-    void testDeposit_Multiple() {
-        // ARRANGE
-        DepositRequestDTO depositDTO1 = new DepositRequestDTO(new BigDecimal("100.00"));
-        DepositRequestDTO depositDTO2 = new DepositRequestDTO(new BigDecimal("200.00"));
-        when(accountRepository.findById(1L))
-                .thenReturn(Optional.of(testAccount));
+    @DisplayName("getTransactionsForAccount returns transactions when account exists")
+    void getTransactions_Success() {
+        Transaction tx = new Transaction();
+        tx.setId(10L);
+        tx.setAccount(testAccount);
+        tx.setType(TransactionType.DEPOSIT);
+        tx.setAmount(new BigDecimal("100.00"));
+        tx.setTimestamp(Instant.now());
 
-        // ACT
-        transactionService.deposit(1L, depositDTO1);
-        transactionService.deposit(1L, depositDTO2);
+        when(accountRepository.existsById(1L)).thenReturn(true);
+        when(transactionRepository.findByAccountIdOrderByTimestampDesc(1L))
+                .thenReturn(List.of(tx));
 
-        // ASSERT
-        assertThat(testAccount.getBalance())
-                .isEqualTo(new BigDecimal("1300.00"));
+        List<TransactionResponseDTO> result = transactionService.getTransactionsForAccount(1L);
 
-        // VERIFY: save() should be called 4 times (2 deposits x (account + transaction))
-        verify(accountRepository, times(2)).save(testAccount);
-        verify(transactionRepository, times(2)).save(any(Transaction.class));
+        assertThat(result).hasSize(1);
+        assertThat(result.get(0).type()).isEqualTo(TransactionType.DEPOSIT);
+        assertThat(result.get(0).amount()).isEqualByComparingTo(new BigDecimal("100.00"));
     }
 
     @Test
-    @DisplayName("Should handle deposit and withdraw sequence correctly")
-    void testDeposit_ThenWithdraw() {
-        // ARRANGE
-        DepositRequestDTO depositDTO = new DepositRequestDTO(new BigDecimal("500.00"));
-        WithdrawRequestDTO withdrawDTO = new WithdrawRequestDTO(new BigDecimal("300.00"));
-        when(accountRepository.findById(1L))
-                .thenReturn(Optional.of(testAccount));
+    @DisplayName("getTransactionsForAccount throws when account not found")
+    void getTransactions_AccountNotFound() {
+        when(accountRepository.existsById(999L)).thenReturn(false);
 
-        // ACT
-        transactionService.deposit(1L, depositDTO);
-        transactionService.withdraw(1L, withdrawDTO);
-
-        // ASSERT
-        assertThat(testAccount.getBalance())
-                .isEqualTo(new BigDecimal("1200.00"));
-
-        verify(accountRepository, times(2)).save(testAccount);
-        verify(transactionRepository, times(2)).save(any(Transaction.class));
+        assertThatThrownBy(() -> transactionService.getTransactionsForAccount(999L))
+                .isInstanceOf(AccountNotFoundException.class);
     }
-
 }

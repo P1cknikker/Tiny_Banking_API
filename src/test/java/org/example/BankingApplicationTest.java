@@ -2,17 +2,15 @@ package org.example;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
 
-import static org.assertj.core.api.Assertions.*;
-
+@SpringBootTest
 @DisplayName("Banking Application Integration Tests")
 class BankingApplicationTest {
 
     @Test
     @DisplayName("Application context loads successfully")
-    void testApplicationContextLoads() {
-        // Placeholder test - replace with actual integration tests
-        assertThat(true).isTrue();
+    void contextLoads() {
+        // Spring Boot startet den Context; Test schlägt fehl, wenn etwas nicht verdrahtet ist
     }
-
 }
