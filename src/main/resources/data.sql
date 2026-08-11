@@ -12,3 +12,8 @@ INSERT INTO transactions (id, account_id, type, amount, timestamp) VALUES
     (2, 1, 'DEPOSIT', 600.00, TIMESTAMP '2026-02-01 14:30:00'),
     (3, 1, 'WITHDRAW', 100.00, TIMESTAMP '2026-02-10 09:15:00'),
     (4, 2, 'DEPOSIT', 250.50, TIMESTAMP '2026-03-01 11:00:00');
+
+-- Identity-Sequenzen nach manuellen IDs fortsetzen (H2)
+ALTER TABLE customers ALTER COLUMN id RESTART WITH 3;
+ALTER TABLE accounts ALTER COLUMN id RESTART WITH 4;
+ALTER TABLE transactions ALTER COLUMN id RESTART WITH 5;
