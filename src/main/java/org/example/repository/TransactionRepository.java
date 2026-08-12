@@ -13,13 +13,6 @@ public interface TransactionRepository extends JpaRepository<Transaction, Long> 
 
 
     @Query("SELECT t FROM Transaction t JOIN FETCH t.account WHERE t.account.id = :accountId ORDER BY t.timestamp DESC")
-    /**
-     * Finds all transactions for a specific account.
-     * Results are ordered by timestamp (newest first).
-     *
-     * @param accountId the account ID
-     * @return List of transactions for the account, ordered by timestamp descending
-     */
     List<Transaction> findByAccountIdOrderByTimestampDesc(@Param("accountId") Long accountId);
 
     /**
